@@ -64,7 +64,7 @@ go build -o eth-address-generator
 Generate Ethereum addresses with a specific prefix and suffix:
 
 ```bash
-./eth-address-generator --prefix=0x --suffix=abcd
+./eth-address-generator --prefix=0x68 --suffix=68
 ```
 
 ## Contribute
