@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 	"github.com/urfave/cli/v2"
@@ -17,8 +18,10 @@ var (
 	counterLock sync.Mutex
 )
 
+var done chan struct{}
+
 func main() {
-	thread := uint32(runtime.GOMAXPROCS(0))
+
 	flags := []cli.Flag{
 		&cli.StringFlag{
 			Name:    "prefix",
@@ -42,11 +45,7 @@ func main() {
 			prefix := cCtx.String("prefix")
 			suffix := cCtx.String("suffix")
 
-			for i := uint32(0); i < thread; i++ {
-				go mine(prefix, suffix)
-			}
-			mine(prefix, suffix)
-
+			multiThreading(prefix, suffix)
 			return nil
 		},
 	}
@@ -54,6 +53,23 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
+
+}
+
+// Multithreaded address generator
+func multiThreading(prefix string, suffix string) {
+	done = make(chan struct{})
+	start := time.Now() // Record the start time
+
+	thread := uint32(runtime.GOMAXPROCS(0))
+
+	for i := uint32(0); i < thread; i++ {
+		go mine(prefix, suffix)
+	}
+	mine(prefix, suffix)
+
+	elapsed := time.Since(start) // Calculate the elapsed time
+	fmt.Printf("Total execution time: %s\n", elapsed)
 }
 
 func mine(prefix string, suffix string) {
@@ -83,11 +99,20 @@ func mine(prefix string, suffix string) {
 		incrementCounter()
 
 		if strings.HasPrefix(acc.Address.Hex(), prefix) && strings.HasSuffix(acc.Address.Hex(), suffix) {
-			fmt.Println(" Your account's mnemonic: ", mne)
-			log.Println(" Private key: ", privateKey)
-			log.Println(" Address: ", acc.Address.Hex())
-			os.Exit(0)
+			log.Println("\n Your account's mnemonic: ", mne,
+				"\n Private key: ", privateKey,
+				"\n Address: ", acc.Address.Hex())
+
+			close(done) // Signal all Goroutines to stop gracefully
+			return
 		}
+
+		select {
+		case <-done:
+			return // Stop the Goroutine if signaled
+		default:
+		}
+
 		fmt.Println("Processed accounts: ", getCounter())
 	}
 }
