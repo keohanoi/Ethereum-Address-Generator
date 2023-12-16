@@ -21,22 +21,7 @@ The Ethereum Address Generator is a Go program designed to generate Ethereum add
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/ethereum-address-generator.git
-cd ethereum-address-generator
-```
-
-## Features
-
-Generate Ethereum addresses with custom prefixes and suffixes.
-Utilizes concurrent Goroutines for efficient address generation.
-Getting Started
-Prerequisites
-Go installed on your machine.
-Installation
-Clone the repository:
-
-```bash
-git clone https://github.com/your-username/ethereum-address-generator.git
+git clone https://github.com/nguyentruongkhang22/ethereum-address-generator.git
 cd ethereum-address-generator
 ```
 
